@@ -1,0 +1,20 @@
+# ------------------------------------------------------------------
+# DATOS PERSONALES: las carpetas de deportistas reales NUNCA se suben.
+# El repositorio es público (GitHub Pages gratuito). Solo se versiona
+# la plantilla.
+# ------------------------------------------------------------------
+deportistas/*
+!deportistas/_plantilla/
+
+# Sistema
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Temporales
+*.tmp
+*.log

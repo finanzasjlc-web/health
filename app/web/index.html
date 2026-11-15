@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Health · Seguimiento</title>
+  <meta name="description" content="Registro diario de entrenamiento y nutrición">
+  <meta name="theme-color" content="#0f766e">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<!-- ===== Pantalla de acceso ===== -->
+<section id="auth" class="screen hidden">
+  <div class="card auth-card">
+    <h1>Health</h1>
+    <p class="muted">Seguimiento de entrenamiento y nutrición</p>
+    <form id="auth-form">
+      <label>Email <input type="email" name="email" required autocomplete="username"></label>
+      <label>Contraseña <input type="password" name="password" required minlength="6" autocomplete="current-password"></label>
+      <div class="row">
+        <button type="submit" class="primary" data-action="login">Entrar</button>
+        <button type="button" data-action="signup">Crear cuenta</button>
+      </div>
+    </form>
+    <p id="auth-msg" class="msg"></p>
+  </div>
+</section>
+
+<!-- ===== App ===== -->
+<section id="app" class="screen hidden">
+  <header class="topbar">
+    <div class="brand">Health</div>
+    <select id="sel-deportista" class="sel-dep" title="Deportista"></select>
+  </header>
+
+  <main>
+    <!-- HOY -->
+    <article id="tab-hoy" class="tab">
+      <div class="card">
+        <div class="card-head">
+          <h2>Registro diario</h2>
+          <input type="date" id="hoy-fecha">
+        </div>
+        <form id="form-diario" class="grid2">
+          <label>Peso (kg) <input type="number" step="0.1" name="peso_kg" inputmode="decimal"></label>
+          <label>Sueño (h) <input type="number" step="0.5" name="sueno_h" inputmode="decimal"></label>
+          <label>Calidad sueño 1-10 <input type="number" min="1" max="10" name="calidad_sueno" inputmode="numeric"></label>
+          <label>FC reposo <input type="number" name="fc_reposo" inputmode="numeric"></label>
+          <label>Energía 1-10 <input type="number" min="1" max="10" name="energia" inputmode="numeric"></label>
+          <label>Estrés 1-10 <input type="number" min="1" max="10" name="estres" inputmode="numeric"></label>
+          <label>Hambre 1-10 <input type="number" min="1" max="10" name="hambre" inputmode="numeric"></label>
+          <label>Pasos <input type="number" name="pasos" inputmode="numeric"></label>
+          <label class="span2">Dolor / molestias <input type="text" name="dolor" placeholder="zona e intensidad"></label>
+          <label class="span2">Notas <textarea name="notas" rows="2"></textarea></label>
+          <button type="submit" class="primary span2">Guardar</button>
+        </form>
+        <p id="diario-msg" class="msg"></p>
+      </div>
+
+      <div class="card">
+        <h2>Plan de hoy</h2>
+        <ul id="plan-hoy" class="list"></ul>
+      </div>
+    </article>
+
+    <!-- SESIÓN -->
+    <article id="tab-sesion" class="tab hidden">
+      <div class="card">
+        <h2>Registrar sesión</h2>
+        <form id="form-sesion" class="grid2">
+          <label>Fecha <input type="date" name="fecha" required></label>
+          <label>Tipo
+            <select name="tipo">
+              <option value="fuerza">Fuerza</option>
+              <option value="hyrox">Hyrox / endurance</option>
+              <option value="resistencia">Resistencia</option>
+              <option value="tecnica">Técnica</option>
+              <option value="movilidad">Movilidad</option>
+              <option value="otro">Otro</option>
+            </select>
+          </label>
+          <label class="span2">Nombre <input type="text" name="nombre" placeholder="Ej. Torso A, Hyrox sim" required></label>
+          <label>Estado
+            <select name="estado">
+              <option value="completa">Completa</option>
+              <option value="parcial">Parcial</option>
+              <option value="no_realizada">No realizada</option>
+            </select>
+          </label>
+          <label>Duración (min) <input type="number" name="duracion_min" inputmode="numeric"></label>
+          <label>RPE 1-10 <input type="number" min="1" max="10" name="rpe" inputmode="numeric"></label>
+          <label>Distancia (km) <input type="number" step="0.01" name="distancia_km" inputmode="decimal"></label>
+          <label>FC media <input type="number" name="fc_media" inputmode="numeric"></label>
+          <label>FC máx <input type="number" name="fc_max" inputmode="numeric"></label>
+          <label class="span2">Detalle (cargas, series, tiempos) <textarea name="notas" rows="3" placeholder="Sentadilla 100x5x5 RIR2…"></textarea></label>
+          <button type="submit" class="primary span2">Guardar sesión</button>
+        </form>
+        <p id="sesion-msg" class="msg"></p>
+      </div>
+      <div class="card">
+        <h2>Últimas sesiones</h2>
+        <ul id="lista-sesiones" class="list"></ul>
+      </div>
+    </article>
+
+    <!-- NUTRICIÓN -->
+    <article id="tab-nutri" class="tab hidden">
+      <div class="card">
+        <div class="card-head">
+          <h2>Nutrición</h2>
+          <input type="date" id="nutri-fecha">
+        </div>
+        <form id="form-nutri" class="grid2">
+          <label>Tipo de día
+            <select name="tipo_dia">
+              <option value="">—</option>
+              <option value="fuerte">Entreno fuerte</option>
+              <option value="ligero">Entreno ligero</option>
+              <option value="descanso">Descanso</option>
+              <option value="competicion">Competición</option>
+            </select>
+          </label>
+          <label>Adherencia % <input type="number" min="0" max="100" name="adherencia" inputmode="numeric"></label>
+          <label>kcal <input type="number" name="kcal" inputmode="numeric"></label>
+          <label>Proteína (g) <input type="number" step="0.1" name="proteina_g" inputmode="decimal"></label>
+          <label>Carbohidratos (g) <input type="number" step="0.1" name="carbohidratos_g" inputmode="decimal"></label>
+          <label>Grasas (g) <input type="number" step="0.1" name="grasas_g" inputmode="decimal"></label>
+          <label>Fibra (g) <input type="number" step="0.1" name="fibra_g" inputmode="decimal"></label>
+          <label>Agua (L) <input type="number" step="0.1" name="agua_l" inputmode="decimal"></label>
+          <label class="span2">Notas <textarea name="notas" rows="2"></textarea></label>
+          <button type="submit" class="primary span2">Guardar</button>
+        </form>
+        <p id="nutri-objetivo" class="muted"></p>
+        <p id="nutri-msg" class="msg"></p>
+      </div>
+    </article>
+
+    <!-- EVOLUCIÓN -->
+    <article id="tab-evo" class="tab hidden">
+      <div class="card">
+        <h2>Peso (60 días)</h2>
+        <div class="kpis" id="kpi-peso"></div>
+        <canvas id="chart-peso" height="220"></canvas>
+      </div>
+      <div class="card">
+        <h2>Carga semanal (12 semanas)</h2>
+        <div class="kpis" id="kpi-carga"></div>
+        <canvas id="chart-carga" height="200"></canvas>
+      </div>
+      <div class="card">
+        <h2>Nutrición (30 días)</h2>
+        <div class="kpis" id="kpi-nutri"></div>
+      </div>
+    </article>
+
+    <!-- AJUSTES -->
+    <article id="tab-ajustes" class="tab hidden">
+      <div class="card">
+        <h2>Perfil</h2>
+        <form id="form-perfil" class="grid2">
+          <label class="span2">Nombre <input type="text" name="nombre"></label>
+          <label>Altura (cm) <input type="number" step="0.1" name="altura_cm" inputmode="decimal"></label>
+          <label>Sexo
+            <select name="sexo"><option value="">—</option><option value="H">H</option><option value="M">M</option><option value="otro">Otro</option></select>
+          </label>
+          <label>Fecha nacimiento <input type="date" name="fecha_nacimiento"></label>
+          <label>Deporte <input type="text" name="deporte"></label>
+          <label class="span2 check"><input type="checkbox" name="consentimiento_datos"> Consiento el tratamiento de mis datos de salud para el seguimiento</label>
+          <button type="submit" class="primary span2">Guardar perfil</button>
+        </form>
+        <p id="perfil-msg" class="msg"></p>
+      </div>
+      <div class="card">
+        <h2>Datos</h2>
+        <div class="row wrap">
+          <button data-export="registro_diario">Exportar diario CSV</button>
+          <button data-export="sesion_realizada">Exportar sesiones CSV</button>
+          <button data-export="registro_nutricion">Exportar nutrición CSV</button>
+        </div>
+      </div>
+      <div class="card">
+        <p class="muted" id="info-version"></p>
+        <button id="btn-logout">Cerrar sesión</button>
+      </div>
+    </article>
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="hoy" class="active">Hoy</button>
+    <button data-tab="sesion">Sesión</button>
+    <button data-tab="nutri">Nutrición</button>
+    <button data-tab="evo">Evolución</button>
+    <button data-tab="ajustes">Ajustes</button>
+  </nav>
+</section>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="./config.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
