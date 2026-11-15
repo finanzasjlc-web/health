@@ -16,9 +16,9 @@
 | Fase 1 · Plan nutricional | ⬜ |
 | Fase 2 · Decisión de arquitectura de la app | ✅ PWA + Supabase (ver `app/README.md`) |
 | Fase 2 · MVP de la app (código) | ✅ 2026-11-15 · `app/web/` + `app/supabase/schema.sql` |
-| Fase 2 · Esquema ejecutado en Supabase | ⬜ Usuario, ver `app/SETUP.md` paso 1 |
-| Fase 2 · Repositorio GitHub + Pages | ⬜ Usuario, ver `app/SETUP.md` paso 2 |
-| Fase 2 · Prueba en Android con datos reales | ⬜ |
+| Fase 2 · Esquema ejecutado en Supabase | ✅ 2026-11-15 |
+| Fase 2 · Repositorio GitHub + Pages | ✅ https://github.com/finanzasjlc-web/health · app en https://finanzasjlc-web.github.io/health/ |
+| Fase 2 · Prueba en Android con datos reales | ✅ 2026-11-15 · registro diario guardado desde el móvil (v0.1.1) |
 | Fase 2 · Pantalla para cargar plan (sesiones y nutrición) | ⬜ Sprint siguiente |
 | Fase 2 · Panel preparador con alertas | ⬜ Sprint siguiente (vista `v_alertas` ya existe) |
 
