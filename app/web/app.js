@@ -55,6 +55,21 @@
     $(id).innerHTML = items.map(([v, l]) => `<div class="kpi"><b>${v ?? '—'}</b><span>${l}</span></div>`).join('');
   }
   function err(e) { console.error(e); return e?.message || String(e); }
+  function banner(txt) {
+    const b = $('#banner'); b.textContent = txt || ''; b.classList.toggle('hidden', !txt);
+  }
+  // Envuelve un manejador de formulario: exige ficha y muestra cualquier excepción en pantalla
+  function guard(msgId, fn) {
+    return async (e) => {
+      e.preventDefault();
+      if (!state.dep) return msg(msgId, 'No hay ficha de deportista; revisa el aviso superior.', false);
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+      try { await fn(e); }
+      catch (ex) { msg(msgId, 'Error: ' + err(ex), false); }
+      finally { if (btn) btn.disabled = false; }
+    };
+  }
 
   // ------------------------------------------------------------------ auth
   async function initAuth() {
@@ -98,8 +113,25 @@
 
   // ------------------------------------------------------------------ deportistas
   async function cargarDeportistas() {
-    const { data, error } = await sb.from('deportistas').select('*').order('nombre');
-    if (error) { toast('Error cargando deportistas: ' + err(error)); return; }
+    banner('');
+    let { data, error } = await sb.from('deportistas').select('*').order('nombre');
+    if (error) {
+      banner('No se puede leer la base de datos: ' + err(error) +
+        '\n¿Está ejecutado app/supabase/schema.sql en el SQL Editor de Supabase?');
+      return;
+    }
+    // Si el usuario no tiene ficha propia (cuenta creada antes del esquema), la creamos aquí
+    if (!(data || []).some((d) => d.user_id === state.user.id)) {
+      const nueva = { user_id: state.user.id, email: state.user.email, nombre: state.user.email.split('@')[0] };
+      const { error: eIns } = await sb.from('deportistas').insert(nueva);
+      if (eIns) {
+        banner('Tu usuario no tiene ficha de deportista y no se ha podido crear: ' + err(eIns) +
+          '\nSolución: vuelve a ejecutar app/supabase/schema.sql en Supabase y recarga la app.');
+        return;
+      }
+      ({ data } = await sb.from('deportistas').select('*').order('nombre'));
+      toast('Ficha de deportista creada');
+    }
     state.deportistas = data || [];
     const sel = $('#sel-deportista');
     sel.innerHTML = state.deportistas.map((d) => {
@@ -110,7 +142,7 @@
     const guardado = localStorage.getItem('health.dep');
     const propio = state.deportistas.find((d) => d.user_id === state.user.id);
     state.dep = state.deportistas.find((d) => d.id === guardado) || propio || state.deportistas[0] || null;
-    if (!state.dep) { toast('No hay ficha de deportista. Ejecuta el esquema SQL y vuelve a registrarte.', 6000); return; }
+    if (!state.dep) { banner('No hay ficha de deportista. Ejecuta app/supabase/schema.sql en Supabase y recarga.'); return; }
     sel.value = state.dep.id;
     await refrescarTodo();
   }
@@ -145,13 +177,12 @@
     fillForm($('#form-diario'), data);
   }
   $('#hoy-fecha').addEventListener('change', cargarDiario);
-  $('#form-diario').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const row = { ...formData(e.target), deportista_id: state.dep.id, fecha: $('#hoy-fecha').value };
+  $('#form-diario').addEventListener('submit', guard('#diario-msg', async (e) => {
+    const row = { ...formData(e.target), deportista_id: state.dep.id, fecha: $('#hoy-fecha').value || hoy() };
     const { error } = await sb.from('registro_diario').upsert(row, { onConflict: 'deportista_id,fecha' });
     if (error) return msg('#diario-msg', err(error), false);
     msg('#diario-msg', 'Guardado'); toast('Registro diario guardado');
-  });
+  }));
 
   async function cargarPlanHoy() {
     const { data } = await sb.from('sesion_planificada').select('*')
@@ -185,8 +216,7 @@
       toast('Sesión borrada'); cargarSesiones();
     }));
   }
-  $('#form-sesion').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  $('#form-sesion').addEventListener('submit', guard('#sesion-msg', async (e) => {
     const f = e.target;
     const row = { ...formData(f), deportista_id: state.dep.id, sesion_planificada_id: f.dataset.plan || null };
     const { error } = await sb.from('sesion_realizada').insert(row);
@@ -195,7 +225,7 @@
     delete f.dataset.plan;
     ['nombre', 'duracion_min', 'rpe', 'distancia_km', 'fc_media', 'fc_max', 'notas'].forEach((k) => f[k].value = '');
     cargarSesiones();
-  });
+  }));
 
   // ------------------------------------------------------------------ nutrición
   async function cargarNutri() {
@@ -219,13 +249,12 @@
   }
   $('#nutri-fecha').addEventListener('change', cargarNutri);
   $('#form-nutri').tipo_dia.addEventListener('change', mostrarObjetivoNutri);
-  $('#form-nutri').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const row = { ...formData(e.target), deportista_id: state.dep.id, fecha: $('#nutri-fecha').value };
+  $('#form-nutri').addEventListener('submit', guard('#nutri-msg', async (e) => {
+    const row = { ...formData(e.target), deportista_id: state.dep.id, fecha: $('#nutri-fecha').value || hoy() };
     const { error } = await sb.from('registro_nutricion').upsert(row, { onConflict: 'deportista_id,fecha' });
     if (error) return msg('#nutri-msg', err(error), false);
     msg('#nutri-msg', 'Guardado'); toast('Nutrición guardada');
-  });
+  }));
 
   // ------------------------------------------------------------------ evolución
   function chart(id, cfg) {
@@ -284,12 +313,11 @@
   }
 
   // ------------------------------------------------------------------ perfil y exportación
-  $('#form-perfil').addEventListener('submit', async (e) => {
-    e.preventDefault();
+  $('#form-perfil').addEventListener('submit', guard('#perfil-msg', async (e) => {
     const { error } = await sb.from('deportistas').update(formData(e.target)).eq('id', state.dep.id);
     if (error) return msg('#perfil-msg', err(error), false);
     msg('#perfil-msg', 'Perfil guardado'); await cargarDeportistas();
-  });
+  }));
 
   $$('[data-export]').forEach((b) => b.addEventListener('click', async () => {
     const tabla = b.dataset.export;

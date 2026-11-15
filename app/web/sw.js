@@ -1,7 +1,7 @@
 /* Service worker: cachea la "shell" de la app para abrirla sin conexión.
  * Las llamadas a Supabase van siempre a red (no se cachean datos).
  * Sube CACHE_VERSION en cada despliegue que cambie archivos estáticos. */
-const CACHE_VERSION = 'health-v0.1.0';
+const CACHE_VERSION = 'health-v0.1.1';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './config.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png',

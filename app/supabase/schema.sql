@@ -208,10 +208,17 @@ create policy deportistas_update on public.deportistas for update
   using (user_id = auth.uid() or preparador_id = auth.uid())
   with check (user_id = auth.uid() or preparador_id = auth.uid());
 
+-- un usuario puede crear su propia ficha (si no la creó el trigger);
 -- un preparador puede crear deportistas sin cuenta propia (los lleva él)
 drop policy if exists deportistas_insert on public.deportistas;
 create policy deportistas_insert on public.deportistas for insert
-  with check (preparador_id = auth.uid());
+  with check (user_id = auth.uid() or preparador_id = auth.uid());
+
+-- Crea la ficha de los usuarios que se registraron antes de existir el trigger
+insert into public.deportistas (user_id, email, nombre)
+select u.id, u.email, split_part(u.email, '@', 1)
+from auth.users u
+where not exists (select 1 from public.deportistas d where d.user_id = u.id);
 
 -- resto de tablas: una política por tabla basada en puede_acceder()
 do $$

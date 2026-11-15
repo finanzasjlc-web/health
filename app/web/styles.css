@@ -99,6 +99,12 @@ button:disabled { opacity: 0.6; cursor: wait; }
 }
 .tabbar button.active { color: var(--primary); border-top: 2px solid var(--primary); }
 
+.banner {
+  background: #fff4e5; color: #7a2e0e; border: 1px solid #f5c48a;
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 12px; font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
 .toast {
   position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%);
   background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 999px;
